@@ -65,7 +65,7 @@ resource "aws_lb" "main" {
   security_groups    = [data.aws_security_group.default.id]
   subnets            = [for subnet in aws_subnet.crescendo-private-subnets : subnet.id]
 
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
 }
 

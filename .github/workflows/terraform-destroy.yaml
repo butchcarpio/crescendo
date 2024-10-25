@@ -1,5 +1,5 @@
 name: Terraform Destroy
-run-name: TF plan and apply - crescendo assessment
+run-name: TF Destroy - crescendo assessment
 
 on:
   workflow_dispatch:
