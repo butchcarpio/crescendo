@@ -1,4 +1,4 @@
-name: Terraform Destroy
+name: Terraform Destroy - Auto Approve
 run-name: TF Destroy - crescendo assessment
 
 on:

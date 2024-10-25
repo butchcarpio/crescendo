@@ -1,4 +1,4 @@
-name: Terraform
+name: Terraform Plan and Apply - Auto Approve
 run-name: TF plan and apply - crescendo assessment
 
 on:
