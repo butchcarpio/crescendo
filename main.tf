@@ -17,7 +17,7 @@ terraform {
 }
 
 locals {
-  public_subnets = { for public_subnets in var.public_subnets : public_subnets.cidr_block => public_subnets }
+  public_subnets  = { for public_subnets in var.public_subnets : public_subnets.cidr_block => public_subnets }
   private_subnets = { for private_subnets in var.private_subnets : private_subnets.cidr_block => private_subnets }
 }
 
@@ -31,7 +31,7 @@ resource "aws_vpc" "main" {
 
 #PUBLIC SUBNETS
 resource "aws_subnet" "crescendo-public-subnets" {
-  for_each  = local.public_subnets
+  for_each                = local.public_subnets
   vpc_id                  = aws_vpc.main.id
   cidr_block              = each.value.cidr_block
   availability_zone       = each.value.availability_zone
@@ -43,17 +43,17 @@ resource "aws_subnet" "crescendo-public-subnets" {
 
 #PRIVATE SUBNETS
 resource "aws_subnet" "crescendo-private-subnets" {
-  for_each  = local.private_subnets
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = each.value.cidr_block
-  availability_zone       = each.value.availability_zone
+  for_each          = local.private_subnets
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = each.value.cidr_block
+  availability_zone = each.value.availability_zone
   tags = {
     Name = each.value.name
   }
 }
 
 data "aws_security_group" "default" {
-  name = "default"
+  name   = "default"
   vpc_id = aws_vpc.main.id
 }
 
@@ -124,7 +124,7 @@ resource "aws_route_table" "public" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id     = aws_subnet.crescendo-public-subnets["10.0.1.0/24"].id
+  subnet_id      = aws_subnet.crescendo-public-subnets["10.0.1.0/24"].id
   route_table_id = aws_route_table.public.id
 }
 
@@ -133,7 +133,7 @@ resource "aws_instance" "magnolia" {
   ami           = "ami-0866a3c8686eaeeba"
   instance_type = "t2.micro"
   subnet_id     = aws_subnet.crescendo-public-subnets["10.0.1.0/24"].id
-  key_name = "butch"
+  key_name      = "butch"
 
   user_data = <<-EOF
               #!/bin/bash
@@ -170,7 +170,7 @@ resource "aws_instance" "magnolia" {
     Name = "magnolia-instance"
   }
 
-  }
+}
 
 #CLOUDFRONT
 resource "aws_s3_bucket" "crescendo-s3" {
@@ -187,7 +187,7 @@ resource "aws_cloudfront_origin_access_identity" "crescendo-OAI" {
 
 resource "aws_cloudfront_distribution" "crescendo-distribution" {
   origin {
-    domain_name = "${aws_s3_bucket.crescendo-s3.bucket_regional_domain_name}"
+    domain_name = aws_s3_bucket.crescendo-s3.bucket_regional_domain_name
     origin_id   = "crescendo-s3-bucket"
 
     s3_origin_config {
