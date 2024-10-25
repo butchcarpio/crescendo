@@ -52,17 +52,12 @@ resource "aws_subnet" "crescendo-private-subnets" {
   }
 }
 
-data "aws_security_group" "default" {
-  name   = "default"
-  vpc_id = aws_vpc.main.id
-}
-
 #ALB
 resource "aws_lb" "main" {
   name               = "crescendo-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [data.aws_security_group.default.id]
+  security_groups    = [aws_security_group.allow_http.id]
   subnets            = [for subnet in aws_subnet.crescendo-private-subnets : subnet.id]
 
   enable_deletion_protection = false
@@ -130,10 +125,11 @@ resource "aws_route_table_association" "public" {
 
 #EC2
 resource "aws_instance" "magnolia" {
-  ami           = "ami-0866a3c8686eaeeba"
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.crescendo-public-subnets["10.0.1.0/24"].id
-  key_name      = "butch"
+  ami             = "ami-0866a3c8686eaeeba"
+  instance_type   = "t2.micro"
+  subnet_id       = aws_subnet.crescendo-public-subnets["10.0.1.0/24"].id
+  security_groups = [aws_security_group.allow_http.id]
+  key_name        = "butch"
 
   user_data = <<-EOF
               #!/bin/bash
@@ -230,5 +226,40 @@ resource "aws_cloudfront_distribution" "crescendo-distribution" {
 
   tags = {
     Name = "crescendo-butch-distribution"
+  }
+}
+
+#SECURITY GROUPS
+resource "aws_security_group" "allow_http" {
+  name        = "web_access"
+  description = "Allow inbound HTTP traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description      = "Allow HTTP from anywhere"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  ingress {
+    description      = "Allow HTTP from anywhere"
+    from_port        = 8080
+    to_port          = 8080
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow_web"
   }
 }
